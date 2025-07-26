@@ -1,6 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
+class EditableTextWidget extends StatelessWidget {
+  final int index;
+  final TextEditingController _controller;
+  EditableTextWidget(this.index, this._controller, {Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: _controller,
+      textAlign: TextAlign.center,
+      style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Theme.of(context).colorScheme.onSecondaryContainer),
+      decoration: InputDecoration(
+        contentPadding: EdgeInsets.only(bottom: 20),
+        border: InputBorder.none,
+        filled: false,
+      ),
+      onEditingComplete: () => WindowManagerPlus.current.invokeMethodToWindow(0, 'updateName', {index: _controller.text}),
+    );
+  }
+}
+
 class _MoveWindow extends StatelessWidget {
   _MoveWindow({Key? key, this.child, this.onDoubleTap}) : super(key: key);
   final Widget? child;
@@ -37,9 +58,9 @@ class MoveWindow extends StatelessWidget {
 class ContainerWithShadow extends StatelessWidget {
   final double height;
   final double width;
-  final Color? color;
+  final ColorScheme? colorScheme;
   final child;
-  ContainerWithShadow({Key? key, required this.height, required this.width, required this.child, this.color}) : super(key: key);
+  ContainerWithShadow({Key? key, required this.height, required this.width, required this.child, this.colorScheme}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -49,10 +70,10 @@ class ContainerWithShadow extends StatelessWidget {
       decoration: BoxDecoration(
         boxShadow: [BoxShadow(blurRadius: 5, spreadRadius: 0.5)],
         border: BoxBorder.all(
-          color: color != null ? color! : Theme.of(context).colorScheme.onPrimary,
+          color: colorScheme != null ? colorScheme!.onPrimary : Theme.of(context).colorScheme.onPrimary,
           width: 0.8
         ),
-        color: Theme.of(context).colorScheme.primary,
+        color: colorScheme != null ? colorScheme!.primary : Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(100)),
       child: child,
       key: key);
