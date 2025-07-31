@@ -228,7 +228,7 @@ class _ControlsScreenState extends State<ControlsScreen> {
           )
         ),
         PlayerRole(index, 'civ'),
-        PlayerRole(index, 'star'),
+        PlayerRole(index, 'sheriff'),
         PlayerRole(index, 'gun'),
         PlayerRole(index, 'don'),
         Container(width: 200, height: 30,

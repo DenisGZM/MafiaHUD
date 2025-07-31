@@ -67,7 +67,7 @@ class _OverlayScreenState extends State<OverlayScreen> with WindowListener {
 
   Map<String, ColorScheme> roleSchemes = {
     'civ': civilianScheme,
-    'star': sheriffScheme,
+    'sheriff': sheriffScheme,
     'don': donScheme,
     'gun': gunScheme,
   };
@@ -110,8 +110,8 @@ class _OverlayScreenState extends State<OverlayScreen> with WindowListener {
     setState(() {
       cardHeight =  windowSize.height / 5.76;
       cardWidth =  windowSize.width / 14.2;
-      innerBox = cardWidth / 6.5;
-      outerBox = cardWidth / 4;
+      innerBox = cardWidth / 6;
+      outerBox = cardWidth / 4.5;
       fontScale = innerBox / 30.0;
     });
   }
@@ -210,23 +210,50 @@ class _OverlayScreenState extends State<OverlayScreen> with WindowListener {
   // Widget getters
   Widget getRole(int index) {
     if (roles[index] != 'civ') {
-      return ContainerWithShadow(
-        colorScheme: roleSchemes[roles[index]],
+      return Container(
+        padding: EdgeInsets.all(5),
         height: outerBox,
         width: outerBox,
-        child: Container(padding: EdgeInsets.all(5), child: Image.asset('assets/${roles[index]}.png', fit: BoxFit.scaleDown, width: innerBox, height: innerBox))
-      );
+        decoration: BoxDecoration(
+          border: BoxBorder.fromLTRB(
+            right: BorderSide(
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+              width: 1,
+            ),
+            bottom: BorderSide(
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+              width: 1
+            )
+          ),
+          color: Theme.of(context).colorScheme.primaryContainer,
+          borderRadius: BorderRadius.only(bottomRight: Radius.circular(15))
+        ),
+        child: Image.asset('assets/${roles[index]}.png', fit: BoxFit.scaleDown, width: innerBox, height: innerBox));
     }
     return Container();
   }
 
   Widget getState(int index) {
     if (state[index] != 'sit') {
-      return ContainerWithShadow(
+      return Container(
+        padding: EdgeInsets.all(5),
         height: outerBox,
         width: outerBox,
-        child: Container(padding: EdgeInsets.all(5), child: Image.asset('assets/${state[index]}.png', fit: BoxFit.scaleDown, width: innerBox, height: innerBox))
-      );
+        decoration: BoxDecoration(
+          border: BoxBorder.fromLTRB(
+            left: BorderSide(
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+              width: 1,
+            ),
+            bottom: BorderSide(
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+              width: 1
+            )
+          ),
+          color: Theme.of(context).colorScheme.primaryContainer,
+          borderRadius: BorderRadius.only(bottomLeft: Radius.circular(15))
+        ),
+        child: Image.asset('assets/${state[index]}.png', fit: BoxFit.scaleDown, width: innerBox, height: innerBox));
     }
     return Container();
   }
@@ -285,12 +312,15 @@ class _OverlayScreenState extends State<OverlayScreen> with WindowListener {
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: SizedBox(
-                          width: cardWidth,
-                          height: cardHeight,
-                          child: Stack(
-                            children: [
-                              ColorFiltered( colorFilter: isGrayscale[index]
+                        child: Stack(
+                          children: [
+                            AnimatedContainer(
+                              width: cardWidth,
+                              height: isMovedDown[index] ? cardHeight - 25 : cardHeight,
+                              duration: Duration(milliseconds: 600),
+                              curve: Curves.easeInOut,
+                              color: Theme.of(context).colorScheme.primaryContainer,
+                              child: ColorFiltered(colorFilter: isGrayscale[index]
                                 ? const ColorFilter.matrix(<double>[
                                     0.2126, 0.7152, 0.0722, 0, 0,
                                     0.2126, 0.7152, 0.0722, 0, 0,
@@ -299,29 +329,31 @@ class _OverlayScreenState extends State<OverlayScreen> with WindowListener {
                                   ])
                                 : const ColorFilter.mode(Colors.transparent, BlendMode.dst),
                                 child: getImage(index)),
-                              Positioned(top: cardHeight - innerBox, child: 
-                                SizedBox(child: Container(
-                                  alignment: Alignment.center,
-                                  height: innerBox,
-                                  width: cardWidth,
-                                  color: Theme.of(context).colorScheme.primary,
-                                  child: Row(children: [
-                                    FittedBox(fit: BoxFit.fill, child: Container(
-                                      width: innerBox,
-                                      height: innerBox,
-                                      alignment: Alignment.center,
-                                      color: Theme.of(context).colorScheme.primaryContainer,
-                                      child: Text('${index+1}', textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: fontScale*22, color: Theme.of(context).colorScheme.onPrimaryContainer)))
-                                    ),
-                                    Container(width: cardWidth - innerBox, child: Text(nicknames[index], textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontSize: fontScale*nickfont[index]), overflow: TextOverflow.clip, maxLines: 1))
-                                  ])
-                                ))
-                              ),
-                              Positioned(left: 7, top: 7, child: getRole(index)),
-                              Positioned(right: 7, top: 7, child: getState(index)),
-                            ],
-                          ),
-                        )
+                            ),
+                            AnimatedPositioned(
+                              top: (isMovedDown[index] ? cardHeight - 25 : cardHeight) - innerBox,
+                              duration: Duration(milliseconds: 600),
+                              curve: Curves.easeInOut,
+                              child: Container(
+                                alignment: Alignment.center,
+                                height: innerBox,
+                                width: cardWidth,
+                                color: Theme.of(context).colorScheme.primary,
+                                child: Row(children: [
+                                  FittedBox(fit: BoxFit.fill, child: Container(
+                                    width: innerBox,
+                                    height: innerBox,
+                                    alignment: Alignment.center,
+                                    color: Theme.of(context).colorScheme.primaryContainer,
+                                    child: Text('${index+1}', textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: fontScale*22, color: Theme.of(context).colorScheme.onPrimaryContainer)))
+                                  ),
+                                  Container(width: cardWidth - innerBox, child: Text(nicknames[index], textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontSize: fontScale*nickfont[index]), overflow: TextOverflow.clip, maxLines: 1))
+                                ])
+                            )),
+                            Positioned(left: 0, top: 0, child: getRole(index)),
+                            Positioned(right: 0, top: 0, child: getState(index)),
+                          ],
+                        ),
                       ),
                     ),
                   ),
