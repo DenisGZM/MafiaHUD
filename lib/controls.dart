@@ -89,8 +89,9 @@ class _ControlsScreenState extends State<ControlsScreen> {
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: Container(
-          height: 40,
-          width: 40,
+          padding: EdgeInsets.all(5),
+          height: 30,
+          width: 30,
           decoration: BoxDecoration(
           boxShadow: [BoxShadow(blurRadius: 5, spreadRadius: 1,
                                 color: activeRoles[index] == role
@@ -102,7 +103,7 @@ class _ControlsScreenState extends State<ControlsScreen> {
           ),
           color: Theme.of(context).colorScheme.secondaryContainer,
           borderRadius: BorderRadius.circular(100)),
-          child: Image.asset('assets/$role.png', width: 30, height: 30, fit: BoxFit.none)
+          child: Image.asset('assets/$role.png', width: 20, height: 20, fit: BoxFit.fill)
         )
       )
     );
@@ -119,8 +120,9 @@ class _ControlsScreenState extends State<ControlsScreen> {
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: Container(
-          height: 40,
-          width: 40,
+          padding: EdgeInsets.all(5),
+          height: 30,
+          width: 30,
           decoration: BoxDecoration(
           boxShadow: [BoxShadow(blurRadius: 5, spreadRadius: 1,
                                 color: activeStates[index] == state
@@ -132,7 +134,7 @@ class _ControlsScreenState extends State<ControlsScreen> {
           ),
           color: Theme.of(context).colorScheme.secondaryContainer,
           borderRadius: BorderRadius.circular(100)),
-          child: Image.asset('assets/$state.png', width: 30, height: 30, fit: BoxFit.none)
+          child: Image.asset('assets/$state.png', width: 20, height: 20, fit: BoxFit.scaleDown)
         )
       )
     );
@@ -207,7 +209,7 @@ class _ControlsScreenState extends State<ControlsScreen> {
 
   Widget PlayerInfo(int index) {
     return Container(
-      padding: EdgeInsets.all(15),
+      padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.horizontal(left: Radius.circular(50), right: Radius.circular(50)),
         border: BoxBorder.all(color: Colors.black, width: 0.3)
@@ -270,11 +272,11 @@ class _ControlsScreenState extends State<ControlsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
       Column(
-        spacing: 5,
+        spacing: 2,
         children: List.generate(10, (index) => PlayerInfo(index))
       ),
       Padding(
-        padding: EdgeInsets.only(top: 20, left: 130),
+        padding: EdgeInsets.only(top: 10, left: 100),
         // child: FittedBox(
         child: Row(
           spacing: 20,
@@ -289,7 +291,7 @@ class _ControlsScreenState extends State<ControlsScreen> {
               child: MouseRegion(
                 cursor: SystemMouseCursors.click,
                 child: Container(
-                  width: 120, height: 40,
+                  width: 120, height: 30,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     border: BoxBorder.all(color: Theme.of(context).colorScheme.onTertiaryContainer, width: 2),
@@ -309,7 +311,7 @@ class _ControlsScreenState extends State<ControlsScreen> {
                 cursor: SystemMouseCursors.click,
                 child: Container(
                   // margin: EdgeInsets.all(50),
-                  width: 180, height: 40,
+                  width: 180, height: 30,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     border: BoxBorder.all(color: Theme.of(context).colorScheme.onTertiaryContainer, width: 2),
@@ -337,7 +339,7 @@ class _ControlsScreenState extends State<ControlsScreen> {
               child: MouseRegion(
                 cursor: SystemMouseCursors.click,
                 child: Container(
-                  width: 120, height: 40,
+                  width: 120, height: 30,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     border: BoxBorder.all(color: Theme.of(context).colorScheme.onTertiaryContainer, width: 2),
@@ -362,12 +364,12 @@ class _ControlsScreenState extends State<ControlsScreen> {
         child: Row(children: [
           Column(children: [
             Container(
-              margin: EdgeInsets.only(left: 25, top: 10, bottom: 0, right: 25),
-              height: 40,
-              alignment: Alignment.center,
-              child: Text('Player Info', style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer, fontSize: 25, fontWeight: FontWeight.bold))),
+              margin: EdgeInsets.only(left: 25, top: 5, bottom: 0, right: 25),
+              height: 30,
+              alignment: Alignment.topCenter,
+              child: Text('Player Info', style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer, fontSize: 20, fontWeight: FontWeight.bold))),
             Container(
-              margin: EdgeInsets.all(25),
+              margin: EdgeInsets.only(left: 25, bottom: 5),
               child:  PlayerList()),
           ]),
           Container(

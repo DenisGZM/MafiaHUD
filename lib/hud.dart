@@ -7,10 +7,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 import 'util.dart';
 
-
-int cardWidth = 180;
-int cardHeight = 250;
-
 final ColorScheme civilianScheme = ColorScheme.fromSeed(
   seedColor: Colors.yellowAccent,
   brightness: Brightness.dark,
@@ -63,6 +59,12 @@ class OverlayScreen extends StatefulWidget {
 }
 
 class _OverlayScreenState extends State<OverlayScreen> with WindowListener {
+  double cardWidth = 180;
+  double cardHeight = 250;
+  double innerBox = 30;
+  double outerBox = 40;
+  double fontScale = 1.0;
+
   Map<String, ColorScheme> roleSchemes = {
     'civ': civilianScheme,
     'star': sheriffScheme,
@@ -102,6 +104,39 @@ class _OverlayScreenState extends State<OverlayScreen> with WindowListener {
   void initState() {
     super.initState();
     WindowManagerPlus.current.addListener(this);
+  }
+
+  void updateForSize(Size windowSize) {
+    setState(() {
+      cardHeight =  windowSize.height / 5.76;
+      cardWidth =  windowSize.width / 14.2;
+      innerBox = cardWidth / 6.5;
+      outerBox = cardWidth / 4;
+      fontScale = innerBox / 30.0;
+    });
+  }
+
+  @override
+  void onWindowMaximize([int? windowId]) {
+    WindowManagerPlus.current.getSize().then((windowSize) {
+      print("Maximize: $windowSize");
+      updateForSize(windowSize);      
+    });
+  }
+
+  @override
+  void onWindowUnmaximize([int? windowId]) {
+    WindowManagerPlus.current.getSize().then((windowSize) {
+      print("Minimize: $windowSize");
+      updateForSize(windowSize);      
+    });
+  }
+
+  @override
+  void onWindowResized([int? windowId]) {
+    Size windowSize = MediaQuery.of(context).size;
+    print("Resized: $windowSize");
+    updateForSize(windowSize);
   }
 
   // Handle events from control window
@@ -177,9 +212,9 @@ class _OverlayScreenState extends State<OverlayScreen> with WindowListener {
     if (roles[index] != 'civ') {
       return ContainerWithShadow(
         colorScheme: roleSchemes[roles[index]],
-        height: 40,
-        width: 40,
-        child: Image.asset('assets/${roles[index]}.png', fit: BoxFit.none, width: 30, height: 30)
+        height: outerBox,
+        width: outerBox,
+        child: Container(padding: EdgeInsets.all(5), child: Image.asset('assets/${roles[index]}.png', fit: BoxFit.scaleDown, width: innerBox, height: innerBox))
       );
     }
     return Container();
@@ -188,9 +223,9 @@ class _OverlayScreenState extends State<OverlayScreen> with WindowListener {
   Widget getState(int index) {
     if (state[index] != 'sit') {
       return ContainerWithShadow(
-        height: 40,
-        width: 40,
-        child: Image.asset('assets/${state[index]}.png', fit: BoxFit.none, width: 30, height: 30)
+        height: outerBox,
+        width: outerBox,
+        child: Container(padding: EdgeInsets.all(5), child: Image.asset('assets/${state[index]}.png', fit: BoxFit.scaleDown, width: innerBox, height: innerBox))
       );
     }
     return Container();
@@ -199,16 +234,16 @@ class _OverlayScreenState extends State<OverlayScreen> with WindowListener {
   Widget getImage(int index) {
     if (images[index] == 'default') {
       return Image.asset('assets/default.png',
-        height: cardHeight.toDouble(),
-        width: cardWidth.toDouble(),
+        height: cardHeight,
+        width: cardWidth,
         fit: BoxFit.cover);
     }
     if (imagesBytes[index].isEmpty) {
       imagesBytes[index] = File(images[index]).readAsBytesSync();
     }
     return Image.memory(imagesBytes[index],
-      height: cardHeight.toDouble(),
-      width: cardWidth.toDouble(),
+      height: cardHeight,
+      width: cardWidth,
       fit: BoxFit.cover);
   }
 
@@ -217,7 +252,7 @@ class _OverlayScreenState extends State<OverlayScreen> with WindowListener {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Column(children: [
-        SizedBox(height: 40, child: MoveWindow(
+        SizedBox(height: outerBox, child: MoveWindow(
           child: Container(
             color: kDebugMode ? Color.fromARGB(87, 133, 133, 133) : Colors.transparent
           )
@@ -244,54 +279,53 @@ class _OverlayScreenState extends State<OverlayScreen> with WindowListener {
                     padding: EdgeInsets.only(top: isMovedDown[index] ? 25 : 0),
                     child: Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(15),
                         border: Border.all(color: Theme.of(context).colorScheme.primaryContainer, width: 2),
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: ColorFiltered(
-                          colorFilter: isGrayscale[index]
-                              ? const ColorFilter.matrix(<double>[
-                                  0.2126, 0.7152, 0.0722, 0, 0,
-                                  0.2126, 0.7152, 0.0722, 0, 0,
-                                  0.2126, 0.7152, 0.0722, 0, 0,
-                                  0, 0, 0, 1, 0,
-                                ])
-                              : const ColorFilter.mode(Colors.transparent, BlendMode.dst),
-                          child: SizedBox(
-                            width: cardWidth.toDouble(),
-                            height: cardHeight.toDouble(),
-                            child: Stack(
-                              children: [
-                                getImage(index),
-                                Positioned(top: cardHeight - 30, child: 
-                                  SizedBox(child: Container(
-                                    alignment: Alignment.center,
-                                    height: 30,
-                                    width: cardWidth.toDouble(),
-                                    color: Theme.of(context).colorScheme.primary,
-                                    child: Row(children: [
-                                      FittedBox(fit: BoxFit.fill, child: Container(
-                                        width: 30,
-                                        height: 30,
-                                        alignment: Alignment.center,
-                                        color: Theme.of(context).colorScheme.primaryContainer,
-                                        child: Text('${index+1}', textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 22, color: Theme.of(context).colorScheme.onPrimaryContainer)))
-                                      ),
-                                      Container(width: cardWidth - 30, child: Text(nicknames[index], textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontSize: nickfont[index]), overflow: TextOverflow.clip, maxLines: 1))
-                                    ])
-                                  ))
-                                ),
-                                Positioned(left: 7, top: 7, child: getRole(index)),
-                                Positioned(right: 7, top: 7, child: getState(index)),
-                              ],
-                            ),
-                          )
-                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        child: SizedBox(
+                          width: cardWidth,
+                          height: cardHeight,
+                          child: Stack(
+                            children: [
+                              ColorFiltered( colorFilter: isGrayscale[index]
+                                ? const ColorFilter.matrix(<double>[
+                                    0.2126, 0.7152, 0.0722, 0, 0,
+                                    0.2126, 0.7152, 0.0722, 0, 0,
+                                    0.2126, 0.7152, 0.0722, 0, 0,
+                                    0, 0, 0, 1, 0,
+                                  ])
+                                : const ColorFilter.mode(Colors.transparent, BlendMode.dst),
+                                child: getImage(index)),
+                              Positioned(top: cardHeight - innerBox, child: 
+                                SizedBox(child: Container(
+                                  alignment: Alignment.center,
+                                  height: innerBox,
+                                  width: cardWidth,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  child: Row(children: [
+                                    FittedBox(fit: BoxFit.fill, child: Container(
+                                      width: innerBox,
+                                      height: innerBox,
+                                      alignment: Alignment.center,
+                                      color: Theme.of(context).colorScheme.primaryContainer,
+                                      child: Text('${index+1}', textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: fontScale*22, color: Theme.of(context).colorScheme.onPrimaryContainer)))
+                                    ),
+                                    Container(width: cardWidth - innerBox, child: Text(nicknames[index], textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontSize: fontScale*nickfont[index]), overflow: TextOverflow.clip, maxLines: 1))
+                                  ])
+                                ))
+                              ),
+                              Positioned(left: 7, top: 7, child: getRole(index)),
+                              Positioned(right: 7, top: 7, child: getState(index)),
+                            ],
+                          ),
+                        )
                       ),
                     ),
                   ),
-                  SizedBox(height: cardHeight+30)
+                  SizedBox(height: cardHeight+outerBox)
                 ])
                 );
               }),

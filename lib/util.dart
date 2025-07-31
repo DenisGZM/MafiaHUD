@@ -33,8 +33,8 @@ class _MoveWindow extends StatelessWidget {
         onPanStart: (details) {
           WindowManagerPlus.current.startDragging();
         },
-        onDoubleTap: this.onDoubleTap ?? () async => (await WindowManagerPlus.current.isMaximized()) ? WindowManagerPlus.current.restore() : WindowManagerPlus.current.maximize(),
-        child: this.child ?? Container());
+        onDoubleTap: onDoubleTap ?? () async => (await WindowManagerPlus.current.isMaximized()) ? WindowManagerPlus.current.restore() : WindowManagerPlus.current.maximize(),
+        child: child ?? Container());
   }
 }
 
@@ -44,12 +44,12 @@ class MoveWindow extends StatelessWidget {
   MoveWindow({Key? key, this.child, this.onDoubleTap}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    if (child == null) return _MoveWindow(onDoubleTap: this.onDoubleTap);
+    if (child == null) return _MoveWindow(onDoubleTap: onDoubleTap);
     return _MoveWindow(
-      onDoubleTap: this.onDoubleTap,
+      onDoubleTap: onDoubleTap,
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [Expanded(child: this.child!)]),
+          children: [Expanded(child: child!)]),
     );
   }
 }
