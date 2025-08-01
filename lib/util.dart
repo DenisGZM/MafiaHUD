@@ -17,7 +17,8 @@ class EditableTextWidget extends StatelessWidget {
         border: InputBorder.none,
         filled: false,
       ),
-      onEditingComplete: () => WindowManagerPlus.current.invokeMethodToWindow(0, 'updateName', {index: _controller.text}),
+      onTapOutside: (event) { FocusManager.instance.primaryFocus?.unfocus(); WindowManagerPlus.current.invokeMethodToWindow(0, 'updateName', {index: _controller.text}); },
+      onEditingComplete: () { FocusManager.instance.primaryFocus?.unfocus(); WindowManagerPlus.current.invokeMethodToWindow(0, 'updateName', {index: _controller.text}); },
     );
   }
 }

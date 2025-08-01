@@ -199,6 +199,8 @@ class _OverlayScreenState extends State<OverlayScreen> with WindowListener {
           if ( imgFile.existsSync() ) {
             images[key] = value;
             imagesBytes[key] = imgFile.readAsBytesSync();
+          } else {
+            images[key] = 'default';
           }
         });
         // imageCache.clear();

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -64,6 +65,7 @@ class _ControlsScreenState extends State<ControlsScreen> {
   List<String> activeRoles = List.filled(10, 'civ');
   List<String> activeStates = List.filled(10, 'sit');
   List<TextEditingController> nameControllers = List<TextEditingController>.generate(10, (int index) => TextEditingController(text: 'Player ${index+1}'));
+  List<TextEditingController> slotControllers = List<TextEditingController>.generate(10, (int index) => TextEditingController(text: '${index+1}'));
 
   Widget getImage(int index) {
     if (images[index] == 'default') {
@@ -151,7 +153,7 @@ class _ControlsScreenState extends State<ControlsScreen> {
         return;
       }
       final encodedImg = img.encodePng(decodedImg);
-      final dir = Directory('players'); 
+      final dir = Directory('players');
       dir.createSync();
       File('${dir.path}/${index+1}.png').writeAsBytesSync(encodedImg);
       setState(() {
@@ -162,33 +164,53 @@ class _ControlsScreenState extends State<ControlsScreen> {
     return;
   }
 
-  void swapDir(int index, bool isUp) {
-    int direction = isUp ? -1 : 1;
-    final dir = Directory('players'); 
-    File curFile = File('${dir.path}/${index+1}.png');
-    File swapFile = File('${dir.path}/${index+direction+1}.png');
-    Uint8List tmpBuffer = curFile.readAsBytesSync();
-    curFile.writeAsBytesSync(swapFile.readAsBytesSync());
-    swapFile.writeAsBytesSync(tmpBuffer);
+  void swap(int fromIndex, int toIndex) {
+    final dir = Directory('players');
+    File fromFile = File('${dir.path}/${fromIndex+1}.png');
+    File toFile = File('${dir.path}/${toIndex+1}.png');
+
+    if ( !fromFile.existsSync() || !toFile.existsSync() ) {
+      if ( !fromFile.existsSync() && !toFile.existsSync() ) {
+        // pass
+      } else if ( !fromFile.existsSync() ) {
+        fromFile.writeAsBytesSync(toFile.readAsBytesSync());
+        toFile.deleteSync();
+        images[fromIndex] = fromFile.path;
+        images[toIndex] = 'default';
+      } else if ( !toFile.existsSync() ) {
+        toFile.writeAsBytesSync(fromFile.readAsBytesSync());
+        fromFile.deleteSync();
+        images[fromIndex] = 'default';
+        images[toIndex] = toFile.path;
+      }
+    } else {
+      Uint8List tmpBuffer = fromFile.readAsBytesSync();
+      fromFile.writeAsBytesSync(toFile.readAsBytesSync());
+      toFile.writeAsBytesSync(tmpBuffer);
+    }
 
     setState(() {
-      var nick = nameControllers[index];
-      nameControllers[index] = nameControllers[index+direction];
-      nameControllers[index+direction] = nick;
+      var nick = nameControllers[fromIndex];
+      nameControllers[fromIndex] = nameControllers[toIndex];
+      nameControllers[toIndex] = nick;
     });
 
     WindowManagerPlus.current.invokeMethodToWindow(0, 'resetRoles', {});
     WindowManagerPlus.current.invokeMethodToWindow(0, 'resetStates', {});
-    WindowManagerPlus.current.invokeMethodToWindow(0, 'updateName', {index: nameControllers[index].text, index+direction: nameControllers[index+direction].text,});
-    WindowManagerPlus.current.invokeMethodToWindow(0, 'updateImage', {index: '${dir.path}/${index+1}.png', index+direction: '${dir.path}/${index+direction+1}.png', });
+    WindowManagerPlus.current.invokeMethodToWindow(0, 'updateName', {fromIndex: nameControllers[fromIndex].text, toIndex: nameControllers[toIndex].text,});
+    WindowManagerPlus.current.invokeMethodToWindow(0, 'updateImage', {fromIndex: '${dir.path}/${fromIndex+1}.png', toIndex: '${dir.path}/${toIndex+1}.png', });
+  }
+
+  void swapDir(int index, bool isUp) {
+    int direction = isUp ? -1 : 1;
+    swap(index, index+direction);
   }
 
   bool allowArrow(int index, bool isUp) {
-    int direction = isUp ? -1 : 1;
-    if ( isUp && index > 0 && images[index] != 'default' && images[index+direction] != 'default' ) {
+    if ( isUp && index > 0 ) {
       return true;
     }
-    if ( !isUp && index < 9 && images[index] != 'default' && images[index+direction] != 'default' ) {
+    if ( !isUp && index < 9 ) {
       return true;
     }
     return false;
@@ -217,7 +239,42 @@ class _ControlsScreenState extends State<ControlsScreen> {
       child: Row(spacing:15, children: [
         Column(children: [
           getArrow(index, true),
-          Text('${index+1}', style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 20)),
+          Container(height: 30, width: 30, child: 
+            TextField(
+              controller: slotControllers[index],
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 20),
+              focusNode: FocusNode(),
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                filled: false,
+                contentPadding: EdgeInsets.only(left:4, bottom:19),
+                counter: SizedBox(width: 0, height: 0), // To remove default symbol counter
+              ),
+              maxLength: 2,
+              maxLengthEnforcement: MaxLengthEnforcement.enforced,
+              onTapOutside: (PointerDownEvent event) {
+                var value = int.tryParse(slotControllers[index].text);
+                if (value != null) {
+                  if ( value != index+1 && value > 0 && value <= 10 ) {
+                    swap(index, value-1);
+                  }
+                }
+                FocusManager.instance.primaryFocus?.unfocus();
+                slotControllers[index].text = (index+1).toString();
+              },
+              onEditingComplete: () {
+                var value = int.tryParse(slotControllers[index].text);
+                if (value != null) {
+                  if ( value != index+1 && value > 0 && value <= 10 ) {
+                    swap(index, value-1);
+                  }
+                }
+                FocusManager.instance.primaryFocus?.unfocus();
+                slotControllers[index].text = (index+1).toString();
+              },
+            ),
+          ),
           getArrow(index, false),
         ]),
         GestureDetector(
